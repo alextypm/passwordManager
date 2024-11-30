@@ -3,10 +3,8 @@ from tkinter import *
 from tkinter import messagebox
 import json
 
-
 # Initialize pygame mixer
 pygame.mixer.init()
-
 
 # ---------------------------- SAVE PASSWORD ------------------------------- #
 def save():
@@ -37,24 +35,50 @@ def save():
             pygame.mixer.music.load("finish.mp3")
             pygame.mixer.music.play()
 
-            # Save the password data if confirmed
-            with open("data.json", "w") as data_file:
-                json.dump(new_data, data_file, indent=4)
+            try:
+                # Open the JSON file and load data if it exists
+                with open("data.json", "r") as data_file:
+                    content = data_file.read()
+                    if not content.strip():  # If file is empty
+                        data = {}
+                    else:
+                        data_file.seek(0)
+                        data = json.load(data_file)
+            except FileNotFoundError:
+                # If file doesn't exist, initialize as an empty dictionary
+                data = {}
 
-            # Clear input fields
+            # Update the existing data with new data
+            data.update(new_data)
+
+            # Save the updated data back to the file
+            with open("data.json", "w") as data_file:
+                json.dump(data, data_file, indent=4)
+
+            # Clear the input fields
             website_entry.delete(0, END)
             password_entry.delete(0, END)
-
 
 # ---------------------------- Find Password ------------------------------- #
 def find_password():
     website = website_entry.get()
-    with open("data.json") as data_file:
-        data = json.load(data_file)
+    try:
+        with open("data.json") as data_file:
+            # Check if the file is empty
+            content = data_file.read()
+            if not content.strip():  # File is empty
+                raise FileNotFoundError  # Treat as if it doesn't exist
+            data_file.seek(0)  # Go back to the beginning of the file
+            data = json.load(data_file)
+    except FileNotFoundError:
+        messagebox.showinfo(title="Error", message="No data file found or file is empty.")
+    else:
         if website in data:
             email = data[website]["email"]
             password = data[website]["password"]
             messagebox.showinfo(title=website, message=f"Email: {email}\nPassword: {password}")
+        else:
+            messagebox.showinfo(title="Error", message=f"No details for {website} exist.")
 
 # ---------------------------- UI SETUP ------------------------------- #
 window = Tk()
@@ -93,6 +117,5 @@ search_button = Button(text="Search", command=find_password)
 search_button.grid(row=1, column=3,)
 add_button = Button(text="Add", width=36, command=save)
 add_button.grid(row=4, column=1, columnspan=2)
-
 
 window.mainloop()
