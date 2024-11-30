@@ -1,0 +1,4 @@
+hello | example@gmail.com | cool
+hi | example@gmail.com | cool
+adweadhjeihd | example@gmail.com | ahdihwidhaw
+amazon | example@gmail.com | asdawdww
