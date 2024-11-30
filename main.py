@@ -1,6 +1,8 @@
 import pygame
 from tkinter import *
 from tkinter import messagebox
+import json
+
 
 # Initialize pygame mixer
 pygame.mixer.init()
@@ -11,6 +13,12 @@ def save():
     website = website_entry.get()
     email = email_entry.get()
     password = password_entry.get()
+    new_data = {
+        website: {
+            "email": email,
+            "password": password,
+        }
+    }
 
     if len(website) == 0 or len(password) == 0:
         messagebox.showinfo(title="Oops", message="Please make sure you haven't left any fields empty.")
@@ -30,11 +38,23 @@ def save():
             pygame.mixer.music.play()
 
             # Save the password data if confirmed
-            with open("data.txt", "a") as data_file:
-                data_file.write(f"{website} | {email} | {password}\n")
-                website_entry.delete(0, END)
-                password_entry.delete(0, END)
+            with open("data.json", "w") as data_file:
+                json.dump(new_data, data_file, indent=4)
 
+            # Clear input fields
+            website_entry.delete(0, END)
+            password_entry.delete(0, END)
+
+
+# ---------------------------- Find Password ------------------------------- #
+def find_password():
+    website = website_entry.get()
+    with open("data.json") as data_file:
+        data = json.load(data_file)
+        if website in data:
+            email = data[website]["email"]
+            password = data[website]["password"]
+            messagebox.showinfo(title=website, message=f"Email: {email}\nPassword: {password}")
 
 # ---------------------------- UI SETUP ------------------------------- #
 window = Tk()
@@ -69,7 +89,10 @@ password_entry = Entry(width=35)
 password_entry.grid(row=3, column=1, columnspan=2)
 
 # Buttons
+search_button = Button(text="Search", command=find_password)
+search_button.grid(row=1, column=3,)
 add_button = Button(text="Add", width=36, command=save)
 add_button.grid(row=4, column=1, columnspan=2)
+
 
 window.mainloop()
